@@ -1,0 +1,100 @@
+
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <script src="./Cesium-1.63.1/Build/cesium/Cesium.js"></script>
+    <link href="./Cesium-1.63.1/Build/cesium/Widgets/widgets.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="cesiumContainer" style="width: 1900px; height:1000px"></div>
+</body>
+    <script>
+        const URL="http://localhost:9090";
+        var kml_presented=0;
+
+        /*var geeMetadata = new Cesium.GoogleEarthEnterpriseMetadata(new Cesium.Resource({
+            url : 'url here',
+            proxy : new Cesium.DefaultProxy('/proxy/')
+        }));
+
+        var viewer = new Cesium.Viewer('cesiumContainer', {
+            imageryProvider : new Cesium.GoogleEarthEnterpriseImageryProvider({
+                metadata : geeMetadata
+            }),
+            terrainProvider : new Cesium.GoogleEarthEnterpriseTerrainProvider({
+                metadata : geeMetadata
+            }),
+            baseLayerPicker : false
+        });*/
+        var viewer = new Cesium.Viewer('cesiumContainer', {
+            imageryProvider: Cesium.createTileMapServiceImageryProvider({
+                url: Cesium.buildModuleUrl('http://localhost:7070'),
+                proxy: new Cesium.DefaultProxy('/proxy/')
+            }),
+            baseLayerPicker: false,
+            geocoder: false
+        }); 
+
+        async function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function drawkmls(files_dict,viewer){
+            var i=0
+            for(file in files_dict)
+            {
+                if(files_dict[file]['mode']=='d')
+                {
+                    viewer.dataSources.remove(viewer.dataSources.get(i));
+                    kml_presented--;
+                }
+                i++;
+            }
+            for(file in files_dict )
+            {
+                var path="./kml/"+file
+                if(files_dict[file]['mode']!='u')
+                {
+                    var promise = Cesium.KmlDataSource.load(path,{
+                        proxy : new Cesium.DefaultProxy('/proxy/')
+                    });
+                    ds=viewer.dataSources.add(promise);
+                    kml_presented++;
+                }
+            
+            }
+        }
+
+        async function loop(){
+            var fxhr = new XMLHttpRequest();
+                fxhr.onreadystatechange = function() {
+                    if (fxhr.readyState == XMLHttpRequest.DONE) {
+                        var kmls =JSON.parse(fxhr.responseText)
+                        console.log(kmls)
+                        drawkmls(kmls,viewer)
+                    }
+                }
+                fxhr.open('GET', URL, true);
+                fxhr.send(null);
+                await sleep(3000);//wait 3 second
+            while(true){
+
+                var xhr = new XMLHttpRequest();
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState == XMLHttpRequest.DONE) {
+                        var kmls =JSON.parse(xhr.responseText)
+                        console.log(kmls)
+                        drawkmls(kmls,viewer)
+                    }
+                }
+                xhr.open('GET', URL+'/kml', true);
+                xhr.send(null);
+                await sleep(3000);//wait 3 second
+            }
+        }
+
+        loop()
+    </script>
+</html>
