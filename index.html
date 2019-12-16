@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="utf-8">
-    <script type="text/javascript" src="config.json"></script>
+    <script type="text/javascript" src="config.js"></script>
     <script src="./Cesium-1.63.1/Build/cesium/Cesium.js"></script>
     <link href="./Cesium-1.63.1/Build/cesium/Widgets/widgets.css" rel="stylesheet">
 </head>
@@ -12,15 +12,15 @@
     <div id="cesiumContainer" style="width: 1900px; height:1000px"></div>
 </body>
     <script>
-        const URL="http://localhost:"+config.local_server_port;//preform as a kml reader and proxy to the GEE server
-        const KML_DIR=config.kml_dir
-        const REFRESH_RATE=config.refresh_rate
+        const URL="http://localhost:"+CONFIG.local_server_port;//preform as a kml reader and proxy to the GEE server
+        const KML_DIR=CONFIG.kml_dir
+        const REFRESH_RATE=CONFIG.refresh_rate
 
         var kml_presented=0;
-        if(config.natural_eath_debug){
+        if(CONFIG.natural_eath_debug){
             var viewer = new Cesium.Viewer('cesiumContainer', {
                 imageryProvider: Cesium.createTileMapServiceImageryProvider({
-                    url: Cesium.buildModuleUrl('Assert/textures/NaturlEarthII'),
+                    url: Cesium.buildModuleUrl('Assets/Textures/NaturalEarthII'),
                 }),
                 baseLayerPicker: false,
                 geocoder: false

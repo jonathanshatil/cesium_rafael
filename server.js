@@ -1,6 +1,6 @@
 const fs = require('fs');
 var cors = require('cors')
-var CONFIG = require('./config.json');
+var CONFIG = require('./config');
 const express = require('express')
 const request=require('request')
 const app = express()
