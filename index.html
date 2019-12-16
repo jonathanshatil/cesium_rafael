@@ -3,6 +3,7 @@
 
 <head>
     <meta charset="utf-8">
+    <script type="text/javascript" src="config.json"></script>
     <script src="./Cesium-1.63.1/Build/cesium/Cesium.js"></script>
     <link href="./Cesium-1.63.1/Build/cesium/Widgets/widgets.css" rel="stylesheet">
 </head>
@@ -11,31 +12,38 @@
     <div id="cesiumContainer" style="width: 1900px; height:1000px"></div>
 </body>
     <script>
-        const URL="http://localhost:9090";
+        const URL="http://localhost:"+config.local_server_port;//preform as a kml reader and proxy to the GEE server
+        const KML_DIR=config.kml_dir
+        const REFRESH_RATE=config.refresh_rate
+
         var kml_presented=0;
+        if(config.natural_eath_debug){
+            var viewer = new Cesium.Viewer('cesiumContainer', {
+                imageryProvider: Cesium.createTileMapServiceImageryProvider({
+                    url: Cesium.buildModuleUrl('Assert/textures/NaturlEarthII'),
+                }),
+                baseLayerPicker: false,
+                geocoder: false
+            }); 
+        }
+        else{
+            var geeMetadata = new Cesium.GoogleEarthEnterpriseMetadata({
+            url : URL });   
+            
+            var viewer = new Cesium.Viewer('cesiumContainer', {
 
-        /*var geeMetadata = new Cesium.GoogleEarthEnterpriseMetadata(new Cesium.Resource({
-            url : 'url here',
-            proxy : new Cesium.DefaultProxy('/proxy/')
-        }));
-
-        var viewer = new Cesium.Viewer('cesiumContainer', {
+            // GEE database would ideally have at least one imagery i.e. earth backdrop
             imageryProvider : new Cesium.GoogleEarthEnterpriseImageryProvider({
-                metadata : geeMetadata
+            metadata : geeMetadata
             }),
+            
             terrainProvider : new Cesium.GoogleEarthEnterpriseTerrainProvider({
-                metadata : geeMetadata
+            metadata : geeMetadata
             }),
             baseLayerPicker : false
-        });*/
-        var viewer = new Cesium.Viewer('cesiumContainer', {
-            imageryProvider: Cesium.createTileMapServiceImageryProvider({
-                url: Cesium.buildModuleUrl('http://localhost:7070'),
-                proxy: new Cesium.DefaultProxy('/proxy/')
-            }),
-            baseLayerPicker: false,
-            geocoder: false
-        }); 
+            });
+        }
+    
 
         async function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
@@ -45,7 +53,7 @@
             var i=0
             for(file in files_dict)
             {
-                if(files_dict[file]['mode']=='d')
+                if(files_dict[file]['mode']=='d')//needs to be debuged
                 {
                     viewer.dataSources.remove(viewer.dataSources.get(i));
                     kml_presented--;
@@ -54,7 +62,7 @@
             }
             for(file in files_dict )
             {
-                var path="./kml/"+file
+                var path=KML_DIR+"/"+file
                 if(files_dict[file]['mode']!='u')
                 {
                     var promise = Cesium.KmlDataSource.load(path,{
@@ -78,7 +86,7 @@
                 }
                 fxhr.open('GET', URL, true);
                 fxhr.send(null);
-                await sleep(3000);//wait 3 second
+                await sleep(REFRESH_RATE);//wait 
             while(true){
 
                 var xhr = new XMLHttpRequest();

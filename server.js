@@ -1,8 +1,11 @@
 const fs = require('fs');
 var cors = require('cors')
+var CONFIG = require('./config.json');
 const express = require('express')
+const request=require('request')
 const app = express()
-const PORT = 9090;
+const PORT = CONFIG.local_server_port
+const KML_DIR = CONFIG.kml_dir
 
 var kmls={}//format: file_name:{'mtime':time,'mode':c/a/d/u} c=changed a=added d=deleted u=unchanged
 var allowCrossDomain = function(req, res, next) {
@@ -30,10 +33,14 @@ app.get('/',(req,res)=>
     res.send(JSON.stringify(kmls));
 })
 
+app.get('/:somthing',(req,res)=>
+{
+    //reciving info from the gee server and sending it to the client here
+})
 app.listen(PORT, () => console.log(`listening on port ${PORT}!`))
 
 async function getKmls(){
-    var files = fs.readdirSync('./kml')
+    var files = fs.readdirSync(KML_DIR)
     for(var key in kmls){
         if (kmls[key]['mode']=='d')
         {
@@ -47,7 +54,7 @@ async function getKmls(){
     files.forEach(function (file) {     
         if (file.includes('kml'))
         {
-            mt=fs.statSync('./kml/'+file).mtimeMs;//last modifing time
+            mt=fs.statSync(KML_DIR+'/'+file).mtimeMs;//last modifing time
             if(Object.keys(kmls).includes(file)){
                 if(mt!=kmls[file]['mtime']){
                     kmls[file]={mtime: mt, mode :'c'} 
